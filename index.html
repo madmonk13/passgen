@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<HEAD>
+<TITLE> PassGen </TITLE>
+<script>
+
+function copyField(id) {
+	document.getElementById(id).classList.remove("copy");
+	var copyText = document.getElementById(id);
+	copyText.select(); 
+	copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+	document.execCommand("copy");
+	document.getElementById(id).classList.add("copy");  
+}
+
+function makePassword() {
+	modifier = document.getElementById("key").value;
+	var x = document.getElementById("site").value;
+	if ( x!="" && modifier != "" )
+	{
+		x = x.toLowerCase();
+		var toAdd = parseInt(modifier);
+		var lc = "abcdefghijklmnopqrstuvwxyz";
+		var sc = ")!@#$%^&*(";
+
+		var use_lowercase = "";
+		var use_uppercase = "";
+		var use_numeric = "";
+		var use_special = "";
+
+		var of_each = document.getElementById("length").value/4;
+
+		for ( a = 0 ; a <= (of_each - 1) ; a++ )
+		{
+			var c1 = x.substr(a,1);
+			var c2 = x.substr(((x.length)-1)-a,1);
+			var p1 = lc.indexOf(c2);
+			var p2 = lc.indexOf(c1);
+			var i = 0 + toAdd;
+			var n1 = lc.charAt((p1+i)%26);
+			var n2 = lc.charAt((p2+i)%26);
+			while ((use_lowercase+use_uppercase).toLowerCase().indexOf(n1)!=-1)
+			{
+				i++;
+				var n1 = lc.charAt((p1+i)%26);
+			}
+			use_lowercase += n1;
+			var i = 1;
+			while ((use_lowercase+use_uppercase).toLowerCase().indexOf(n2)!=-1)
+			{
+				i++;
+				var n2 = lc.charAt((p2+i)%26);
+			}
+			use_uppercase += n2.toUpperCase();
+		}
+		var counter = 0;
+		var inc = toAdd-1	;
+		var suffix = "";
+		var special = "";
+		var useNum;
+		for (c=0;c<x.length;c++)
+		{
+			if (x.charAt(c)=="a")	{inc = inc + 1;}
+			if (x.charAt(c)=="e")	{inc = inc + 2;}
+			if (x.charAt(c)=="i")	{inc = inc + 3;}
+			if (x.charAt(c)=="o")	{inc = inc + 4;}
+			if (x.charAt(c)=="u")	{inc = inc + 5;}
+		}
+		if (inc==0)		{inc = 1;}
+
+		for ( d = 1 ; d <= (of_each*2) ; d++ )
+		{
+			counter += inc;
+			useNum = counter.toString().substr(-1,1);
+			if (d%2==1){
+				while (use_numeric.indexOf(useNum.toString())!=-1) {
+					counter++;
+					useNum = counter.toString().substr(-1,1);
+				}
+				use_numeric += useNum.toString();
+			}
+			else {
+
+				if ( document.getElementById("charset").value == 1 ){
+					while (use_special.indexOf(useNum.toString())!=-1) {
+						counter++;
+						useNum = counter.toString().substr(-1,1);
+					}
+					use_special += sc.charAt(useNum);
+				}
+				else {
+					while (use_numeric.indexOf(useNum.toString())!=-1) {
+						counter++;
+						useNum = counter.toString().substr(-1,1);
+					}
+					use_special += useNum.toString();
+				}
+			}
+		}
+
+		var use_method = document.getElementById("method").value;
+		var output = "";
+
+		switch ( use_method )
+		{
+
+			case "1":
+				output += use_lowercase;
+				output += use_uppercase;
+				output += use_numeric;
+				output += use_special;
+			break;
+
+			case "2":
+				output += use_numeric;
+				output += use_special;
+				output += use_lowercase;
+				output += use_uppercase;
+			break;
+
+			case "3":
+				output += use_uppercase;
+				output += use_lowercase;
+				output += use_numeric;
+				output += use_special;
+			break;
+
+			case "4":
+			for ( t = 0 ; t < of_each ; t++ ) {
+				output += use_lowercase[t];
+				output += use_uppercase[t];
+			}
+			for ( t = 0 ; t < of_each ; t++ ) {
+				output += use_numeric[t];
+				output += use_special[t];
+			}
+			break;
+
+			case "5":
+			for ( t = 0 ; t < of_each ; t++ ) {
+				output += use_numeric[t];
+				output += use_special[t];
+				output += use_lowercase[t];
+				output += use_uppercase[t];
+			}
+			break;
+
+			case "6":
+			for ( t = 0 ; t < of_each ; t++ ) {
+				output += use_uppercase[t];
+				output += use_lowercase[t];
+			}
+			for ( t = 0 ; t < of_each ; t++ ) {
+				output += use_numeric[t];
+				output += use_special[t];
+			}
+			break;
+
+		}
+
+
+		document.getElementById("output").value = output;
+	}
+	else {
+		document.getElementById("output").value = "";
+	}
+}
+
+function setVal(i,c,f,v){
+	var all = document.getElementsByClassName(c);
+	for ( x = 0 ; x < all.length ; x++ ) {
+		all[x].className = c;
+	}
+	document.getElementById(i).className = c+" active";
+	document.getElementById(f).value = v;
+	makePassword();
+}
+
+if (window.applicationCache) {
+	applicationCache.addEventListener('updateready', function() {
+		if (confirm('An update is available. Reload now?')) {
+			window.location.reload();
+		}
+	});
+}
+</script>
+<style>
+* {
+	font-family: Monaco, Arial, Sans-Serif;
+	font-size: 18px;
+}
+body {
+	text-align: left;
+	background-color: #000;
+	color: lightgreen;
+}
+table {
+	background-color: transparent;
+	margin: 10% 0;
+	width:100%;
+}
+td {
+	text-align: center;
+	vertical-align:top;
+	padding: 6px 2px;
+	line-height:30px;
+	}
+input, select, button {
+	border: 1px solid silver;
+	text-align: center;
+	padding:4px;
+	border-radius: 5px;
+	background-color: #333;
+	border: 2px solid lightgreen;
+	color: lightgreen;
+	overflow-y: none;
+}
+.offset, .method, .length, .charset {
+	color: lightgreen;
+	border: 2px solid lightgreen;
+	border-radius: 5px;
+	text-decoration:none;
+	padding: 3px 8px;
+}
+.active {
+	background-color: green;
+}
+#status {
+	font-size: 11px;
+	text-align: center;
+}
+@keyframes copy {
+	0% {
+		background-color: transparent;
+	}
+	50% {
+		background-color: lightgreen;
+	}
+	100% {
+		background-color: transparent;
+	}
+}
+
+.copy {
+	animation-name: copy;
+	animation-iteration-count: 1;
+	animation-duration: 0.5s;
+}
+</style>
+</HEAD>
+<BODY>
+<table cellpadding=3 cellspacing=3 align="center">
+	<tr>
+		<td>LENGTH</td>
+	</tr>
+	<tr>
+		<td>
+			<a href='javascript:void(0);' id="length_8" class='length active' onclick='setVal("length_8","length","length",8);'>8</a>&nbsp;
+			<a href='javascript:void(0);' id="length_12" class='length' onclick='setVal("length_12","length","length",12);'>12</a>&nbsp;
+			<a href='javascript:void(0);' id="length_16" class='length' onclick='setVal("length_16","length","length",16);'>16</a>&nbsp;
+			<a href='javascript:void(0);' id="length_24" class='length' onclick='setVal("length_24","length","length",24);'>24</a>&nbsp;
+			<a href='javascript:void(0);' id="length_32" class='length' onclick='setVal("length_32","length","length",32);'>32</a>&nbsp;
+			<input type="hidden" size=2 id="length" value=8>
+		</td>
+	</tr>
+	<tr>
+		<td>OFFSET</td>
+	</tr>
+	<tr>
+		<td>
+			<a href='javascript:void(0);' id="offset_1" class='offset active' onclick='setVal("offset_1","offset","key",1);'>1</a>&nbsp;
+			<a href='javascript:void(0);' id="offset_2" class='offset' onclick='setVal("offset_2","offset","key",2);'>2</a>&nbsp;
+			<a href='javascript:void(0);' id="offset_3" class='offset' onclick='setVal("offset_3","offset","key",3);'>3</a>&nbsp;
+			<a href='javascript:void(0);' id="offset_4" class='offset' onclick='setVal("offset_4","offset","key",4);'>4</a>&nbsp;
+			<a href='javascript:void(0);' id="offset_5" class='offset' onclick='setVal("offset_5","offset","key",5);'>5</a>&nbsp;
+			<a href='javascript:void(0);' id="offset_6" class='offset' onclick='setVal("offset_6","offset","key",6);'>6</a>&nbsp;
+			<input type="hidden" size=1 id="key" value=1>
+		</td>
+	</tr>
+	<tr>
+		<td>METHOD</td>
+	</tr>
+	<tr>
+		<td>
+			<a href='javascript:void(0);' id="method_1" class='method active' onclick='setVal("method_1","method","method",1);'>1</a>&nbsp;
+			<a href='javascript:void(0);' id="method_2" class='method' onclick='setVal("method_2","method","method",2);'>2</a>&nbsp;
+			<a href='javascript:void(0);' id="method_3" class='method' onclick='setVal("method_3","method","method",3);'>3</a>&nbsp;
+			<a href='javascript:void(0);' id="method_4" class='method' onclick='setVal("method_4","method","method",4);'>4</a>&nbsp;
+			<a href='javascript:void(0);' id="method_5" class='method' onclick='setVal("method_5","method","method",5);'>5</a>&nbsp;
+			<a href='javascript:void(0);' id="method_6" class='method' onclick='setVal("method_6","method","method",6);'>6</a>&nbsp;
+			<input type="hidden" size=1 id="method" value=1>
+		</td>
+	</tr>
+	<tr>
+		<td>CHARSET</td>
+	</tr>
+	<tr>
+		<td>
+			<a href='javascript:void(0);' id="charset_1" class='charset active' onclick='setVal("charset_1","charset","charset",1);'>abCD12#$</a>&nbsp;
+			<a href='javascript:void(0);' id="charset_2" class='charset' onclick='setVal("charset_2","charset","charset",2);'>abCD1234</a>&nbsp;
+			<input type="hidden" size=1 id="charset" value=1>
+		</td>
+	</tr>
+	<tr>
+		<td>INPUT</td>
+	</tr>
+	<tr>
+		<td><input type="text" size=24 id="site" onkeyup="makePassword();"></td>
+	</tr>
+	<tr>
+		<td>OUTPUT</td>
+	</tr>
+	<tr>
+		<td><input type="text" size=24 id="output" readonly></td>
+	</tr>
+	<tr>
+		<td>
+			<button onclick="copyField('output');">Copy to Clipboard</button>
+		</td>
+	</tr>
+</table>
+</BODY >
+</HTML>
