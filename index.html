@@ -1,8 +1,29 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
 <html>
 <HEAD>
-<TITLE> PassGen </TITLE>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<TITLE> Keymaster </TITLE>
 <script>
+
+var sets = new Array();
+sets[0] = "abcdefghijklmnopqrstuvwxyz";
+sets[1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+sets[2] = "0123456789";
+sets[3] = "`~!@#$%^&*()-=_+[]{}|;:,./<>?'\"";
+localStorage.specChar=[];
+
+
+function makeRando(){
+	document.getElementById("pin").value=Math.round(Math.random()*999999999999999);
+	document.getElementById("site").value = "";
+	for ( var i = 0; i <= 5; i++ ){
+		document.getElementById("site").value += Math.random().toString(36).slice(-5);
+	}
+	makePassword2020();
+
+}
 
 function copyField(id) {
 	document.getElementById(id).classList.remove("copy");
@@ -13,158 +34,84 @@ function copyField(id) {
 	document.getElementById(id).classList.add("copy");  
 }
 
-function makePassword() {
-	modifier = document.getElementById("key").value;
-	var x = document.getElementById("site").value;
-	if ( x!="" && modifier != "" )
-	{
-		x = x.toLowerCase();
-		var toAdd = parseInt(modifier);
-		var lc = "abcdefghijklmnopqrstuvwxyz";
-		var sc = ")!@#$%^&*(";
-
-		var use_lowercase = "";
-		var use_uppercase = "";
-		var use_numeric = "";
-		var use_special = "";
-
-		var of_each = document.getElementById("length").value/4;
-
-		for ( a = 0 ; a <= (of_each - 1) ; a++ )
-		{
-			var c1 = x.substr(a,1);
-			var c2 = x.substr(((x.length)-1)-a,1);
-			var p1 = lc.indexOf(c2);
-			var p2 = lc.indexOf(c1);
-			var i = 0 + toAdd;
-			var n1 = lc.charAt((p1+i)%26);
-			var n2 = lc.charAt((p2+i)%26);
-			while ((use_lowercase+use_uppercase).toLowerCase().indexOf(n1)!=-1)
-			{
-				i++;
-				var n1 = lc.charAt((p1+i)%26);
-			}
-			use_lowercase += n1;
-			var i = 1;
-			while ((use_lowercase+use_uppercase).toLowerCase().indexOf(n2)!=-1)
-			{
-				i++;
-				var n2 = lc.charAt((p2+i)%26);
-			}
-			use_uppercase += n2.toUpperCase();
-		}
-		var counter = 0;
-		var inc = toAdd-1	;
-		var suffix = "";
-		var special = "";
-		var useNum;
-		for (c=0;c<x.length;c++)
-		{
-			if (x.charAt(c)=="a")	{inc = inc + 1;}
-			if (x.charAt(c)=="e")	{inc = inc + 2;}
-			if (x.charAt(c)=="i")	{inc = inc + 3;}
-			if (x.charAt(c)=="o")	{inc = inc + 4;}
-			if (x.charAt(c)=="u")	{inc = inc + 5;}
-		}
-		if (inc==0)		{inc = 1;}
-
-		for ( d = 1 ; d <= (of_each*2) ; d++ )
-		{
-			counter += inc;
-			useNum = counter.toString().substr(-1,1);
-			if (d%2==1){
-				while (use_numeric.indexOf(useNum.toString())!=-1) {
-					counter++;
-					useNum = counter.toString().substr(-1,1);
-				}
-				use_numeric += useNum.toString();
-			}
-			else {
-
-				if ( document.getElementById("charset").value == 1 ){
-					while (use_special.indexOf(useNum.toString())!=-1) {
-						counter++;
-						useNum = counter.toString().substr(-1,1);
-					}
-					use_special += sc.charAt(useNum);
-				}
-				else {
-					while (use_numeric.indexOf(useNum.toString())!=-1) {
-						counter++;
-						useNum = counter.toString().substr(-1,1);
-					}
-					use_special += useNum.toString();
-				}
-			}
-		}
-
-		var use_method = document.getElementById("method").value;
-		var output = "";
-
-		switch ( use_method )
-		{
-
-			case "1":
-				output += use_lowercase;
-				output += use_uppercase;
-				output += use_numeric;
-				output += use_special;
-			break;
-
-			case "2":
-				output += use_numeric;
-				output += use_special;
-				output += use_lowercase;
-				output += use_uppercase;
-			break;
-
-			case "3":
-				output += use_uppercase;
-				output += use_lowercase;
-				output += use_numeric;
-				output += use_special;
-			break;
-
-			case "4":
-			for ( t = 0 ; t < of_each ; t++ ) {
-				output += use_lowercase[t];
-				output += use_uppercase[t];
-			}
-			for ( t = 0 ; t < of_each ; t++ ) {
-				output += use_numeric[t];
-				output += use_special[t];
-			}
-			break;
-
-			case "5":
-			for ( t = 0 ; t < of_each ; t++ ) {
-				output += use_numeric[t];
-				output += use_special[t];
-				output += use_lowercase[t];
-				output += use_uppercase[t];
-			}
-			break;
-
-			case "6":
-			for ( t = 0 ; t < of_each ; t++ ) {
-				output += use_uppercase[t];
-				output += use_lowercase[t];
-			}
-			for ( t = 0 ; t < of_each ; t++ ) {
-				output += use_numeric[t];
-				output += use_special[t];
-			}
-			break;
-
-		}
-
-
-		document.getElementById("output").value = output;
+function swapChar(s,c,o){
+	if ( document.getElementById("charset").checked !== true && s == 3 ){
+			s = 0;
 	}
-	else {
-		document.getElementById("output").value = "";
+	let useSet = sets[s];
+	if ( s == 3 ){
+		useSet = filterSpecChars();
 	}
+	c = c.toLowerCase();
+	var l = sets[0].indexOf(c);
+	var rc = useSet.charAt((l+o)%useSet.length);
+	return rc;
 }
+
+function filterSpecChars(){
+	tempSet = "";
+	let settings = document.getElementById("specialChars").getElementsByTagName("input");
+	for ( var i in settings ){
+		if ( settings[i].checked === true ){
+			tempSet += sets[3][settings[i].value];
+		}
+	}
+	return tempSet;
+}
+
+function makePassword2020() {
+	var site = document.getElementById("site").value;
+	var pin = document.getElementById("pin").value;
+	var length = document.getElementById("length").value;
+	if ( site == "" || pin == "" || length == "" ){ return; }
+	document.getElementById("output").value = passAlgo(site,pin,length);
+}
+
+function passAlgo(site,pin,length){
+  var o = parseInt(pin) * 16807 % 2147483647;
+  var output = "";  
+  var r = 0;
+  for ( var t = 0; t < site.length; t++ ){
+    r += site.charCodeAt(t);
+  }
+  
+  for (var i = 0; i < length; i++) {
+    var c = site.charAt((i+r) % site.length);
+    var s = ( pin + i ) % sets.length;
+    var nc = swapChar(s, c, o, r);
+    var t = 0;
+    // impossible to avoid duplicates with larger passwords
+    // so we set a maximum number of attempts to find alternate
+    // to avoid infinite loop.
+    while (output.indexOf(nc) != -1 && t <= 26) {
+      o = (o + 1);
+      nc = swapChar(s, c, o);
+      t++;
+    }
+    output += swapChar(s, c, o);
+  }
+  // shuffle the password for extra pseudo randomness
+  var shuffle = (pin).toString();
+  for (var a = 0; a < shuffle.length; a++) {
+    var p = parseInt(shuffle[a]);
+    if (p > output.length) {
+      p = p - output.length;
+    }
+    if (p != 0) {
+      output = shuffleString(output, p);
+    }
+  }
+  return output;
+}
+
+
+
+function shuffleString(s,x){
+	var left = s.substring(0,x);
+	var right = s.substring(x);
+	return right + left;
+}
+
 
 function setVal(i,c,f,v){
 	var all = document.getElementsByClassName(c);
@@ -173,7 +120,7 @@ function setVal(i,c,f,v){
 	}
 	document.getElementById(i).className = c+" active";
 	document.getElementById(f).value = v;
-	makePassword();
+	makePassword2020();
 }
 
 if (window.applicationCache) {
@@ -183,141 +130,229 @@ if (window.applicationCache) {
 		}
 	});
 }
+
+function populateSpecChars(){
+	for ( var i in sets[3] ){
+		var c = document.createElement("input");
+			c.type = "checkbox";
+			c.setAttribute("class","charOpts");
+			c.value = i;
+			c.checked = "checked";
+			c.setAttribute("onclick","makePassword2020();");
+			c.id = "specChar"+i;
+		document.getElementById("specialChars").appendChild(c);
+		var l = document.createElement("label");
+			l.setAttribute("for","specChar"+i);
+			l.innerHTML = sets[3][i];
+		document.getElementById("specialChars").appendChild(l);
+	}
+}
+function showTab(x){
+	document.getElementById("tab1").style.display="none";
+	document.getElementById("tab2").style.display="none";
+	document.getElementById("tab"+x).style.display="block";
+	document.getElementById("header1").classList.remove("active");
+	document.getElementById("header2").classList.remove("active");
+	document.getElementById("header"+x).classList.add("active");
+}
+
+function saveOptions(){
+	let settings = document.getElementById("specialChars").getElementsByTagName("input");
+	for ( var i in settings ){
+		localStorage.setItem(settings[i].id,settings[i].checked);
+	}
+}
+function loadOptions(){
+	let settings = document.getElementById("specialChars").getElementsByTagName("input");
+	for ( var i in settings ){
+		if ( localStorage[settings[i].id] && typeof(localStorage[settings[i].id]) != "undefined" ){
+			if ( document.getElementById(settings[i].id) && localStorage[settings[i].id] == "false" ){
+				document.getElementById(settings[i].id).checked = false
+			}
+		}
+	}
+}
 </script>
 <style>
-* {
-	font-family: Monaco, Arial, Sans-Serif;
-	font-size: 18px;
-}
 body {
-	text-align: left;
-	background-color: #000;
-	color: lightgreen;
+	background-color: #999;
+	font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+	color: #333333;
+	font-size: 16px;
+	line-height: 24px;
 }
-table {
-	background-color: transparent;
-	margin: 10% 0;
-	width:100%;
+#container {
+	background-color: #eee;
+	display: block;
+	width: 375px;
+	border: 2px solid #000;
+	border-radius: 10px;
+	padding: 10px;
+	position: absolute;
+	left: 50%;
+	top: 1%;
+	margin-left: -177px;
+	box-shadow: #aaa 0px 0px 10px 10px;
 }
-td {
-	text-align: center;
-	vertical-align:top;
-	padding: 6px 2px;
-	line-height:30px;
+@media only screen and (max-width: 500px) {
+	body {
+		background-color: #eee;
 	}
-input, select, button {
-	border: 1px solid silver;
-	text-align: center;
-	padding:4px;
-	border-radius: 5px;
-	background-color: #333;
-	border: 2px solid lightgreen;
-	color: lightgreen;
-	overflow-y: none;
-}
-.offset, .method, .length, .charset {
-	color: lightgreen;
-	border: 2px solid lightgreen;
-	border-radius: 5px;
-	text-decoration:none;
-	padding: 3px 8px;
-}
-.active {
-	background-color: green;
-}
-#status {
-	font-size: 11px;
-	text-align: center;
-}
-@keyframes copy {
-	0% {
-		background-color: transparent;
-	}
-	50% {
-		background-color: lightgreen;
-	}
-	100% {
-		background-color: transparent;
+	#container {
+		width: 96%;
+		box-shadow: none;
+		border-color: transparent;
+		padding: 0;
+		margin: 0;
+		position:relative;
+		left: 0;
+		top: 0;
+		
 	}
 }
 
-.copy {
-	animation-name: copy;
-	animation-iteration-count: 1;
-	animation-duration: 0.5s;
+#container h1, h5 {
+	text-align: center;
+	margin: 4px 0;
 }
+
+
+#container #generate label {
+	display: inline-block;
+	width: 30%;
+}
+#container #generate input[type=text],
+#container #generate input[type=number] {
+	display:inline-block;
+	width: 60%;
+	font-size: 16px;
+	margin: 8px 0;
+	border-radius: 2px;
+}
+#container #generate input[type=checkbox]{
+	display: none;
+}
+#container #generate label[for=charset]{
+	display: block;
+	float: right;
+	clear: both;
+	width: auto	;
+	text-align: right;
+	background-color: #666;
+	color: #333;
+	padding: 4px 10px;
+	border-radius: 10px;
+	border: 2px solid #000;
+}
+#container #generate input[type=checkbox]:checked + label {
+	background-color: lightgreen;
+	color: #000;
+	border-color: #666;
+}
+
+#container #generate input[type=checkbox]:checked + label:after {
+	content:": ON";
+	margin: 0 4px 0 10px;
+}
+#container #generate input[type=checkbox] + label:after {
+	content:": OFF";
+	margin: 0 4px 0 10px;
+}
+
+#container #generate button {
+	display:block;
+	width: 98%;
+	padding: 4px 10px;
+	border-radius: 10px;
+	border: 2px solid #666;
+	margin: 20px 1%;
+	font-size: 16px;
+	color: #000;
+	background-color: lightblue;
+}
+#container #generate button:active {
+	color: lightblue;
+	background-color: #fff;
+}
+
+#container #config input[type=checkbox]{
+	display: none;
+}
+#container #config label {
+	display: inline-block;
+	width: 32px;
+	height: 32px;
+	background-color: #666;
+	color: #999;
+	font-size: 24px;
+	line-height: 28px;
+	margin: 2px 4px;
+	text-align: center;
+	border-radius: 2px;
+	border: 2px solid #012D38;
+}
+#container #config input[type=checkbox]:checked + label {
+	background-color: lightgreen;
+	color: #000;
+	border-color: #666;
+}
+#container #generate input[type=text],
+#container #generate input[type=number]{
+	color: #000;
+	border: 2px solid #666;
+	background-color: transparent;
+	padding: 4px 8px;
+}
+#container #generate #output {
+	background-color: transparent;
+	border-color: transparent;
+	color: #000;
+	font-weight: 500;
+	text-align: left;
+}
+
+#container #config h3 {
+	margin-bottom: 0;
+}
+
 </style>
 </HEAD>
-<BODY>
-<table cellpadding=3 cellspacing=3 align="center">
-	<tr>
-		<td>LENGTH</td>
-	</tr>
-	<tr>
-		<td>
-			<a href='javascript:void(0);' id="length_8" class='length active' onclick='setVal("length_8","length","length",8);'>8</a>&nbsp;
-			<a href='javascript:void(0);' id="length_12" class='length' onclick='setVal("length_12","length","length",12);'>12</a>&nbsp;
-			<a href='javascript:void(0);' id="length_16" class='length' onclick='setVal("length_16","length","length",16);'>16</a>&nbsp;
-			<a href='javascript:void(0);' id="length_24" class='length' onclick='setVal("length_24","length","length",24);'>24</a>&nbsp;
-			<a href='javascript:void(0);' id="length_32" class='length' onclick='setVal("length_32","length","length",32);'>32</a>&nbsp;
-			<input type="hidden" size=2 id="length" value=8>
-		</td>
-	</tr>
-	<tr>
-		<td>OFFSET</td>
-	</tr>
-	<tr>
-		<td>
-			<a href='javascript:void(0);' id="offset_1" class='offset active' onclick='setVal("offset_1","offset","key",1);'>1</a>&nbsp;
-			<a href='javascript:void(0);' id="offset_2" class='offset' onclick='setVal("offset_2","offset","key",2);'>2</a>&nbsp;
-			<a href='javascript:void(0);' id="offset_3" class='offset' onclick='setVal("offset_3","offset","key",3);'>3</a>&nbsp;
-			<a href='javascript:void(0);' id="offset_4" class='offset' onclick='setVal("offset_4","offset","key",4);'>4</a>&nbsp;
-			<a href='javascript:void(0);' id="offset_5" class='offset' onclick='setVal("offset_5","offset","key",5);'>5</a>&nbsp;
-			<a href='javascript:void(0);' id="offset_6" class='offset' onclick='setVal("offset_6","offset","key",6);'>6</a>&nbsp;
-			<input type="hidden" size=1 id="key" value=1>
-		</td>
-	</tr>
-	<tr>
-		<td>METHOD</td>
-	</tr>
-	<tr>
-		<td>
-			<a href='javascript:void(0);' id="method_1" class='method active' onclick='setVal("method_1","method","method",1);'>1</a>&nbsp;
-			<a href='javascript:void(0);' id="method_2" class='method' onclick='setVal("method_2","method","method",2);'>2</a>&nbsp;
-			<a href='javascript:void(0);' id="method_3" class='method' onclick='setVal("method_3","method","method",3);'>3</a>&nbsp;
-			<a href='javascript:void(0);' id="method_4" class='method' onclick='setVal("method_4","method","method",4);'>4</a>&nbsp;
-			<a href='javascript:void(0);' id="method_5" class='method' onclick='setVal("method_5","method","method",5);'>5</a>&nbsp;
-			<a href='javascript:void(0);' id="method_6" class='method' onclick='setVal("method_6","method","method",6);'>6</a>&nbsp;
-			<input type="hidden" size=1 id="method" value=1>
-		</td>
-	</tr>
-	<tr>
-		<td>CHARSET</td>
-	</tr>
-	<tr>
-		<td>
-			<a href='javascript:void(0);' id="charset_1" class='charset active' onclick='setVal("charset_1","charset","charset",1);'>abCD12#$</a>&nbsp;
-			<a href='javascript:void(0);' id="charset_2" class='charset' onclick='setVal("charset_2","charset","charset",2);'>abCD1234</a>&nbsp;
-			<input type="hidden" size=1 id="charset" value=1>
-		</td>
-	</tr>
-	<tr>
-		<td>INPUT</td>
-	</tr>
-	<tr>
-		<td><input type="text" size=24 id="site" onkeyup="makePassword();"></td>
-	</tr>
-	<tr>
-		<td>OUTPUT</td>
-	</tr>
-	<tr>
-		<td><input type="text" size=24 id="output" readonly></td>
-	</tr>
-	<tr>
-		<td>
+<BODY onload="populateSpecChars();loadOptions();" onunload="saveOptions();">
+	<div id="container">
+		<h1>Keymaster</h1>
+		<h5>A pseudo-random password generator.</h5>
+		<div id="generate">
+			<label for="length">Length</label>
+			<input type="number" size=24 id="length" value=16 onkeyup="this.value=this.value.replace(/[^0-9]/g,'');makePassword2020();" onchange="makePassword2020();">
+			<br/>
+			<label for="pin">PIN Code</label>
+			<input type="number" size=24 id="pin" value="0000" onkeyup="this.value=this.value.replace(/[^0-9]/g,'');makePassword2020();" onchange="makePassword2020();">
+			<br/>
+			<label for="site">Site Name</label>
+			<input type="text" size=24 id="site" onkeyup="makePassword2020();">
+			<br/>
+			<label for="output">Password</label>
+			<input type="text" size=24 id="output" readonly>
+			<br/>
+			<input type="checkbox" id="charset" checked=true onclick="makePassword2020();">
+			<label for="charset">Include Special Characters</label>
+			<br/>
 			<button onclick="copyField('output');">Copy to Clipboard</button>
-		</td>
-	</tr>
-</table>
+		</div>
+		<div id="config">
+			<hr/>
+			<h3>Special Character Set</h3>
+			<i>Click character to toggle.</i>
+			<div id="specialChars"></div>
+		</div>
+		<div id="about">
+			<hr/>
+			About Keymaster.
+			<p>Rather than store your passwords, Keymaster allows you to consistently generate pseudo-random passwords given a site name, pin code and password length.</p>
+			<p>To generate a random password, use the below button.  Note, this uses the same algorithm, but provides a random site name and pin.</p>
+			<button onclick="makeRando();">Randomize</button>
+
+		</div>
+	</div>
 </BODY >
 </HTML>
